@@ -1,0 +1,34 @@
+sandbox_mode = "workspace-write"
+approval_policy = "never"
+
+[agents.product]
+description = "Define the product and testable roadmap"
+config_file = "agents/product.toml"
+
+[agents.architect]
+description = "Define application architecture and decisions"
+config_file = "agents/architect.toml"
+
+[agents.ux]
+description = "Define accessible user flows and states"
+config_file = "agents/ux.toml"
+
+[agents.implementer]
+description = "Implement exactly one selected task"
+config_file = "agents/implementer.toml"
+
+[agents.tester]
+description = "Verify acceptance evidence independently"
+config_file = "agents/tester.toml"
+
+[agents.reviewer]
+description = "Review functional behavior and regression"
+config_file = "agents/reviewer.toml"
+
+[agents.security]
+description = "Review security and privacy evidence"
+config_file = "agents/security.toml"
+
+[agents.release]
+description = "Assess release readiness without deployment"
+config_file = "agents/release.toml"

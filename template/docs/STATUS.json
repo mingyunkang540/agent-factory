@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "current_task": null,
+  "blocked": false,
+  "block_reason": null,
+  "initialized": false,
+  "quality": {
+    "lint": "unknown",
+    "typecheck": "unknown",
+    "test": "unknown",
+    "build": "unknown",
+    "tester": "unknown",
+    "reviewer": "unknown",
+    "security": "unknown"
+  },
+  "approvals": {
+    "product": null,
+    "mvp": null,
+    "release": null
+  },
+  "last_run": null,
+  "last_quality": null,
+  "history": []
+}

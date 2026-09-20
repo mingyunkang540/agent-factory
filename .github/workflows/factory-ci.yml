@@ -1,0 +1,40 @@
+name: Factory self-test
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  self-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.17.1'
+      - name: Offline orchestration tests
+        shell: pwsh
+        run: ./tests/self-test.ps1
+      - name: Scaffold and check supported stacks
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          foreach ($preset in @('react-web', 'react-capacitor')) {
+            $name = 'verify-' + $preset
+            ./scripts/new-app.ps1 -Name $name -Preset $preset -Destination $env:RUNNER_TEMP
+            if ($LASTEXITCODE -ne 0) { throw 'Scaffold failed' }
+            Push-Location (Join-Path $env:RUNNER_TEMP $name)
+            try {
+              npm ci
+              if ($LASTEXITCODE -ne 0) { throw 'Install failed' }
+              ./automation/scripts/quality.ps1
+              if ($LASTEXITCODE -ne 0) { throw 'Quality failed' }
+            } finally { Pop-Location }
+          }

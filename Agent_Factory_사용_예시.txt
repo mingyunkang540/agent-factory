@@ -1,0 +1,441 @@
+Agent Factory v0.1 사용 예시
+작성 기준: 2026-09-19 / Windows / PowerShell 7.4 이상
+
+이 파일은 읽고 필요한 명령만 복사하는 설명서입니다.
+전체 파일을 한꺼번에 터미널에 붙여 넣지 마세요.
+[PowerShell]과 [/PowerShell] 사이의 명령만 단계별로 실행하세요.
+오류가 나오면 다음 단계로 넘어가지 말고 9번 항목을 확인하세요.
+처음 사용하는 날은 2~6번, 다음 날에는 7번부터 보세요.
+
+============================================================
+0. 가장 먼저 알아둘 것
+============================================================
+
+Factory 폴더: C:\Users\ttn20\Desktop\agent factory
+  여러 앱에 공통으로 쓰는 자동화 도구입니다.
+
+앱 폴더 예시: C:\Users\ttn20\Desktop\my-apps\daily-note
+  IDEA.md를 작성하고 실제 앱을 개발하는 곳입니다.
+
+ai-new는 Factory에서, 나머지 명령은 생성한 앱 폴더에서 실행한다고
+생각하면 쉽습니다. Factory 폴더 자체에서 앱을 개발하지 않습니다.
+
+PowerShell 7 터미널에서 실행하세요. VS Code 터미널이 Windows
+PowerShell 5.1이라면 먼저 pwsh를 실행해 PowerShell 7로 들어갑니다.
+
+모델을 호출하는 명령: ai-init, ai-next, ai-run, ai-review
+모델을 호출하지 않는 명령: ai-new, ai-status, ai-check, ai-approve,
+                         ai-resume, ai-pr, ai-release
+ai-init/ai-next/ai-run에 -DryRun을 붙여도 모델을 호출하지 않습니다.
+다른 명령에는 -DryRun을 지원하지 않습니다.
+ai-check/ai-release는 로컬 검사 프로그램을 실제로 실행합니다.
+npm ci는 인터넷에서 패키지를 설치할 수 있습니다.
+
+ai-pr은 PR 본문과 실행할 명령을 준비합니다. push/PR 생성은 하지 않습니다.
+ai-release는 준비 상태만 검사합니다. 서비스 배포는 하지 않습니다.
+
+============================================================
+1. 모델 호출 없이 Factory 자체 확인하기 (선택)
+============================================================
+
+[PowerShell]
+Set-Location 'C:\Users\ttn20\Desktop\agent factory'
+pwsh -NoProfile -File .\tests\self-test.ps1
+[/PowerShell]
+
+완료되면 passed/failed 개수가 출력됩니다.
+2026-09-20 최신 검증에서는 49 passed, 0 failed였습니다.
+몇 분이 걸릴 수 있습니다. 매일 실행할 필요는 없습니다.
+이 검사는 가짜 Codex 응답으로 자동화 흐름을 확인하며 실제 모델 성능을
+보장하지 않습니다.
+
+============================================================
+2. 새 앱 만들기: daily-note 예시
+============================================================
+
+이 예시는 아직 없는 daily-note 폴더를 새로 만드는 경우입니다.
+이미 있다면 앱 이름을 바꾸거나 7번 '다음 날 이어 하기'로 이동하세요.
+아래 블록을 실행하면 새 파일과 로컬 Git 저장소가 생성됩니다.
+
+[PowerShell]
+Set-Location 'C:\Users\ttn20\Desktop\agent factory'
+. .\scripts\profile.ps1
+$appsRoot = 'C:\Users\ttn20\Desktop\my-apps'
+New-Item -ItemType Directory -Path $appsRoot -Force | Out-Null
+ai-new daily-note -Preset react-web -Destination $appsRoot
+if ($LASTEXITCODE -ne 0) { throw '앱 생성 실패: 위 오류를 먼저 확인하세요.' }
+Set-Location (Join-Path $appsRoot 'daily-note')
+. .\automation\scripts\profile.ps1
+npm ci
+if ($LASTEXITCODE -ne 0) { throw '패키지 설치 실패: 위 오류를 먼저 확인하세요.' }
+ai-check
+[/PowerShell]
+
+profile.ps1 앞의 '. '는 생략하지 마세요. 현재 터미널에 ai-* 함수를
+등록하는 PowerShell 문법입니다. 사용자 프로필을 자동 수정하지 않습니다.
+
+앱 폴더로 이동한 뒤에는 앱의 automation/scripts/profile.ps1을
+등록하세요. 앱에 복사된 런타임 버전을 사용하기 위한 절차입니다.
+
+ai-check 출력에서 lint/typecheck/test/build가 모두 pass인지 확인합니다.
+이 단계의 화면은 기본 골격입니다. 아직 일기 앱 기능은 구현되지 않았습니다.
+
+모바일을 염두에 둔 별도 프로젝트라면 생성 명령만 다음처럼 바꿉니다.
+두 예시를 같은 앱에 연달아 적용하는 것이 아닙니다.
+
+[PowerShell]
+Set-Location 'C:\Users\ttn20\Desktop\agent factory'
+. .\scripts\profile.ps1
+ai-new daily-note-mobile -Preset react-capacitor -Destination 'C:\Users\ttn20\Desktop\my-apps'
+[/PowerShell]
+
+Capacitor 프리셋은 웹 골격과 설정을 제공합니다.
+Android/iOS 네이티브 프로젝트 생성·빌드·서명·스토어 등록은 별도입니다.
+Toss Mini App과 Unity는 현재 생성할 수 없는 확장 예정 프리셋입니다.
+
+============================================================
+3. IDEA.md에 원하는 앱 적기
+============================================================
+
+daily-note 앱 폴더에서 IDEA.md를 엽니다.
+
+[PowerShell]
+Set-Location 'C:\Users\ttn20\Desktop\my-apps\daily-note'
+notepad .\IDEA.md
+[/PowerShell]
+
+새 앱의 템플릿 안내문을 아래 예시처럼 실제 아이디어로 바꿉니다.
+이미 직접 작성한 IDEA가 있다면 예시로 덮어쓰지 마세요.
+State: UNINITIALIZED 줄이 남아 있으면 ai-init이 중단됩니다.
+
+----- IDEA.md 예시 시작 -----
+# Daily Note
+
+## 해결할 문제
+하루에 한 일을 짧게 기록하고 나중에 다시 찾아보고 싶다.
+
+## 대상 사용자
+개인 기록을 남기는 1인 사용자.
+
+## MVP 범위
+- 날짜와 내용을 입력해 기록을 저장한다.
+- 저장한 기록을 최신 날짜부터 목록으로 본다.
+- 기록을 수정하고 삭제한다.
+
+## 제외 범위
+회원가입, 서버 동기화, 결제, 공유, 알림은 만들지 않는다.
+
+## 제약
+React 웹으로 시작한다. 데이터는 브라우저 로컬에 저장한다.
+외부 API와 유료 서비스를 사용하지 않는다.
+
+## 성공 기준
+- 새로고침 후에도 기록이 남아 있다.
+- 빈 내용은 저장할 수 없다.
+- 기록이 없으면 이해하기 쉬운 안내가 나온다.
+- 휴대전화 크기의 화면에서도 사용하기 쉽다.
+----- IDEA.md 예시 끝 -----
+
+저장하고 메모장을 닫습니다. 이 내용은 설명용 예시이며 Factory 구축
+과정에서 실제 Daily Note 앱을 개발한 것은 아닙니다.
+
+============================================================
+4. AI에게 계획 만들게 하기
+============================================================
+
+앱 폴더에서 다음을 실행합니다. 로그인 상태 확인은 모델 호출이 아닙니다.
+
+[PowerShell]
+. .\automation\scripts\profile.ps1
+codex login status
+[/PowerShell]
+
+로그인되지 않았다면 codex login으로 로그인합니다.
+로그인되어 있어도 계정 사용량이 소진되면 모델 실행은 실패할 수 있습니다.
+
+먼저 미리보기만 확인하려면:
+
+[PowerShell]
+ai-init -DryRun
+[/PowerShell]
+
+실제로 계획을 작성하려면 다음을 별도로 실행합니다. 모델을 호출합니다.
+
+[PowerShell]
+ai-init
+[/PowerShell]
+
+성공하면 다음 파일을 읽어 보세요.
+  docs/PRD.md            만들 제품과 MVP 범위
+  docs/ARCHITECTURE.md   기술 구조
+  docs/UX.md             화면과 사용자 흐름
+  docs/ROADMAP.json      구현할 작업과 수락 기준
+  docs/DECISIONS.md      주요 결정과 이유
+
+ai-init은 제품 코드 구현을 시작하지 않습니다.
+이미 초기화된 앱에 ai-init을 다시 실행하면 기존 계획을 보호하기 위해
+거절합니다. 방향을 바꾸려면 관련 계획 문서를 검토·수정해야 합니다.
+
+계획이 원하는 방향일 때만 사람이 다음 명령을 실행합니다.
+
+[PowerShell]
+ai-approve -Gate product -Note 'MVP 범위와 각 작업의 수락 기준을 검토함'
+[/PowerShell]
+
+============================================================
+5. 기능을 한 작업씩 만들기
+============================================================
+
+먼저 선택될 작업을 확인하려면:
+
+[PowerShell]
+ai-next -DryRun
+[/PowerShell]
+
+실제 작업 하나를 구현하려면:
+
+[PowerShell]
+ai-next
+[/PowerShell]
+
+종료된 뒤 상태를 확인합니다.
+
+[PowerShell]
+ai-status
+[/PowerShell]
+
+ai-next는 작업 하나만 수행합니다.
+실제 검사와 tester/reviewer/security 리뷰가 모두 통과해야 done입니다.
+실패 시 처음 시도를 포함해 최대 3회까지 구현·수정을 시도합니다.
+그래도 실패하면 blocked로 멈추고 다음 작업으로 넘어가지 않습니다.
+
+한 작업의 동작을 먼저 확인한 뒤, 최대 3작업을 이어서 맡기려면:
+
+[PowerShell]
+ai-run 3
+[/PowerShell]
+
+이 명령을 ai-next 바로 다음에 무조건 실행할 필요는 없습니다.
+ai-run은 1~5 범위이며 첫 실패·차단·작업 소진에서 종료됩니다.
+성공한 한 작업도 구현 1회와 독립 리뷰 3회로 모델 세션이 나뉩니다.
+작업 수와 재시도가 늘면 호출량도 늘어납니다.
+
+============================================================
+6. 앱을 직접 열어 보기
+============================================================
+
+앱 폴더의 별도 터미널에서 실행합니다.
+
+[PowerShell]
+npm run dev
+[/PowerShell]
+
+터미널에 표시되는 Local 주소를 브라우저에서 엽니다.
+종료하려면 그 터미널에서 Ctrl+C를 누릅니다.
+ai-next가 src 파일을 수정하는 동안에는 수동으로 같은 파일을 편집하지
+마세요. 한 작업이 끝난 뒤 화면과 데이터를 직접 확인하는 편이 명확합니다.
+
+npm run dev는 계속 실행되는 개발 서버입니다.
+ai-check/agent-factory.json의 품질 명령에 넣지 마세요.
+
+============================================================
+7. 다음 날 이어 하기: 평소에는 이것만 기억하기
+============================================================
+
+새 PowerShell 7 터미널에서:
+
+[PowerShell]
+Set-Location 'C:\Users\ttn20\Desktop\my-apps\daily-note'
+. .\automation\scripts\profile.ps1
+ai-status
+[/PowerShell]
+
+blocked가 false이고 product 승인도 유효하면 다음 작업을 실행합니다.
+
+[PowerShell]
+ai-next
+[/PowerShell]
+
+ai-new와 ai-init은 매일 반복하지 않습니다.
+현재 상태는 이전 대화 대신 docs/ROADMAP.json, docs/STATUS.json 등에
+저장되어 있습니다. 같은 로컬 폴더에서 계속 사용하는 경우입니다.
+다른 PC로 Git clone하면 .agent-factory의 로컬 검사·리뷰 근거는 복사되지
+않습니다. 새 환경에서는 의존성 설치와 근거 재생성이 필요합니다.
+
+자주 쓰는 명령 네 가지:
+  ai-status       지금 상태 보기
+  ai-next         다음 작업 하나
+  ai-run 3        최대 세 작업
+  ai-check        실제 로컬 검사
+
+============================================================
+8. 직접 코드를 고쳤거나 버전·변경 기록을 수정한 경우
+============================================================
+
+ai-check는 실제 lint/typecheck/test/build만 검사합니다.
+ai-review는 같은 검사와 세 독립 AI 리뷰까지 다시 실행합니다.
+
+현재 v0.1의 확인된 한계:
+ai-review는 전체 변경을 보라는 요청과 '선택한 작업만 검토'라는 역할
+지시가 충돌합니다. 통과하더라도 앱 전체나 다른 작업의 수동 변경까지
+검토됐다는 근거로 사용하면 안 됩니다. 구조 검토 문서에 기록했습니다.
+
+최근 작업이 done이고, blocked/current_task가 비어 있는 상태에서
+마지막 완료 작업의 범위 안에서 수동 수정했다면:
+
+[PowerShell]
+ai-review
+[/PowerShell]
+
+ai-review는 다음 작업을 구현하거나 완료 상태로 바꾸지 않습니다.
+다른 작업이나 공통 코드도 수정했다면 전체 변경 파일과 관련 기능을
+별도로 검토해야 합니다. ai-review 재실행만으로 그 검토가 대체되지 않습니다.
+실패하면 로그를 읽고 직접 원인을 수정한 뒤 다시 실행합니다.
+실패/중단된 ai-next를 복구할 때는 9번의 ai-resume을 사용합니다.
+
+PRD·설계·UX·DECISIONS·IDEA·작업 정의를 수정했다면 product 승인이
+만료됩니다. 변경 계획을 먼저 검토한 후 재승인합니다.
+
+[PowerShell]
+ai-approve -Gate product -Note '수정된 계획과 수락 기준을 다시 검토함'
+[/PowerShell]
+
+ai-status의 stale은 파일이 바뀌어 과거 통과 결과가 오래됐다는 뜻입니다.
+unknown은 해당 검사를 아직 확정하지 못했다는 뜻입니다.
+missing은 필요한 검사 명령이나 npm script가 없다는 뜻입니다.
+pass는 해당 근거의 통과 기록이며 사람의 제품 검수를 대신하지 않습니다.
+
+============================================================
+9. 자주 막히는 상황
+============================================================
+
+A. 'ai-next를 찾을 수 없다'
+  터미널을 새로 열면 함수 등록이 사라집니다. 앱 폴더에서 다시 실행:
+
+[PowerShell]
+. .\automation\scripts\profile.ps1
+[/PowerShell]
+
+B. 'Project root must contain agent-factory.json'
+  Factory 폴더 또는 엉뚱한 폴더에서 앱 명령을 실행한 경우입니다.
+  앱 폴더로 이동하거나 직접 경로를 전달하세요:
+
+[PowerShell]
+pwsh -NoProfile -File 'C:\Users\ttn20\Desktop\my-apps\daily-note\automation\scripts\agent.ps1' status -ProjectPath 'C:\Users\ttn20\Desktop\my-apps\daily-note'
+[/PowerShell]
+
+C. 'State: UNINITIALIZED'
+  IDEA.md에 실제 아이디어를 작성하고 그 안내 줄을 제거하세요.
+  아이디어를 쓰지 않은 채 안내 줄만 지우는 것은 권장하지 않습니다.
+
+D. 'Product direction requires current human approval'
+  계획을 읽고 product 승인을 기록하세요. 계획이 바뀌면 재승인합니다.
+
+E. 'blocked' 또는 'interrupted task'
+  먼저 앱 폴더에서 상태와 로그 위치를 확인합니다:
+
+[PowerShell]
+ai-status
+Get-ChildItem .\.agent-factory\runs -Directory | Sort-Object LastWriteTime -Descending | Select-Object -First 3 Name, LastWriteTime
+Get-ChildItem .\.agent-factory\logs -File | Sort-Object LastWriteTime -Descending | Select-Object -First 5 Name, LastWriteTime
+[/PowerShell]
+
+  STATUS의 block_reason과 관련 로그를 읽고 원인을 해결한 뒤:
+
+[PowerShell]
+ai-resume
+[/PowerShell]
+
+  성공하면 다음을 별도로 실행:
+
+[PowerShell]
+ai-next
+[/PowerShell]
+
+  ai-resume은 자동 수리 명령이 아닙니다. 같은 작업을 재시도 가능하게
+  되돌릴 뿐이며, 다시 실행하면 모델 사용량을 소비합니다.
+  상태를 직접 done으로 바꾸거나 실패 테스트를 지우지 마세요.
+
+F. 계정 사용량 초과·로그인 오류
+  ai-init 단계가 실패했다면 계정 문제를 해결한 후 ai-init을 재실행합니다.
+  ai-next가 blocked가 됐다면 계정 문제 해결 후 ai-resume → ai-next입니다.
+  같은 인증/사용량 문제로 ai-run을 반복하지 마세요.
+
+G. 검사에서 missing 또는 npm 관련 실패
+  먼저 앱 폴더에서 npm ci가 성공했는지 확인하세요.
+  package.json의 lint/typecheck/test/build scripts와 실제 오류를 확인합니다.
+  검사 명령을 process.exit(0) 같은 가짜 통과 명령으로 바꾸지 마세요.
+
+H. 'Project is locked'
+  같은 앱에서 다른 Factory 명령이 실행 중인지 확인하세요.
+  정상 실행 중인 명령과 겹쳐 실행하지 않습니다.
+  run.lock 파일의 존재 자체가 실행 중이라는 뜻은 아닙니다.
+
+I. 같은 앱 이름이 이미 있다
+  새 이름을 쓰거나 기존 앱에서 계속하세요. ai-new는 덮어쓰지 않습니다.
+  생성 중 강제 종료된 흔적이면 폴더와 생성 잠금 파일을 먼저 확인하세요.
+  내용을 확인하지 않고 폴더를 지우지 마세요.
+
+============================================================
+10. PR 준비와 릴리스 준비
+============================================================
+
+최근 파일에 대한 검사·리뷰가 통과하고 전체 변경 내용을 직접 확인한 뒤:
+
+[PowerShell]
+ai-pr
+[/PowerShell]
+
+생성되는 PR 본문: .agent-factory/PR_BODY.md
+터미널에 나오는 Git·gh 명령은 사람이 변경 내용을 확인한 뒤 실행합니다.
+ai-pr만 실행해서 GitHub에 PR이 생기는 것은 아닙니다.
+실제 GitHub 작업에는 별도의 remote 설정과 인증이 필요합니다.
+현재 ai-review의 범위 충돌이 수정되기 전에는 ai-pr의 통과만으로
+모든 변경에 대한 독립 검토가 끝났다고 판단하지 마세요.
+
+모든 ROADMAP 작업이 done이고 앱을 직접 사용해 본 뒤 릴리스를 준비합니다.
+먼저 package.json 버전과 CHANGELOG.md를 정리하고:
+
+[PowerShell]
+ai-review
+[/PowerShell]
+
+검사가 통과하고 실제 MVP 사용 결과도 만족할 때만 실행합니다.
+버전·변경 기록과 마지막 작업 밖의 변경도 별도로 검토해야 합니다:
+
+[PowerShell]
+ai-approve -Gate mvp -Note 'MVP의 주요 사용자 흐름을 직접 확인함'
+ai-approve -Gate release -Note '버전, 변경 기록과 릴리스 범위를 확인함'
+ai-release
+[/PowerShell]
+
+결과 파일: .agent-factory/release.json
+ready=true는 이 시스템의 준비 검사를 통과했다는 뜻입니다.
+현재 확인된 리뷰 범위 한계까지 해결됐다는 뜻은 아닙니다.
+배포·스토어 제출·법적 검토까지 자동으로 완료했다는 뜻은 아닙니다.
+
+============================================================
+11. 가장 짧은 사용 흐름
+============================================================
+
+처음 한 번:
+  새 앱 생성 → npm ci → IDEA 작성 → ai-init → 계획 검토
+  → ai-approve -Gate product → ai-next
+
+평소:
+  앱 폴더 이동 → 앱 profile 등록 → ai-status → ai-next
+
+마지막 완료 작업을 직접 수정한 경우:
+  수정 → ai-review → 전체 변경 확인 → ai-pr
+
+실패한 작업:
+  로그 확인 → 원인 해결 → ai-resume → ai-next
+
+릴리스:
+  모든 작업 완료 → 버전/변경 기록 정리 → ai-review
+  → 전체 변경 검토·실제 MVP 사용 확인 → mvp 승인 → release 승인 → ai-release
+
+실제 전체 모델 사이클과 Android/iOS 빌드는 아직 검증되지 않았습니다.
+현재 구조 검토 결과: docs/STRUCTURE_REVIEW.md
+전체 명령: docs/COMMANDS.md
+구축 검증 결과: docs/VERIFICATION.md

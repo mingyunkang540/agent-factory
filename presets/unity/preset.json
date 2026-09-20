@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "name": "unity",
+  "supported": false,
+  "commands": {
+    "install": null,
+    "lint": null,
+    "typecheck": null,
+    "test": null,
+    "build": null
+  }
+}

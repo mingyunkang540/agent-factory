@@ -1,0 +1,17 @@
+.agent-factory/
+.omx/
+.test-work/
+node_modules/
+dist/
+coverage/
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.p12
+*.pfx
+*.keystore
+*.jks
+service-account*.json
+*.log

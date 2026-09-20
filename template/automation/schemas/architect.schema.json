@@ -1,0 +1,16 @@
+{
+  "type": "object",
+  "properties": {
+    "architecture": {
+      "type": "string"
+    },
+    "decisions": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "architecture",
+    "decisions"
+  ],
+  "additionalProperties": false
+}

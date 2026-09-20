@@ -1,0 +1,12 @@
+{
+  "type": "object",
+  "properties": {
+    "ux": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "ux"
+  ],
+  "additionalProperties": false
+}
