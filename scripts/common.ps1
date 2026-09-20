@@ -140,11 +140,11 @@ function Invoke-AfProcess {
         ($IsWindows -or [IO.Path]::GetExtension($executable) -in @('.ps1','.cmd'))) {
         $npmCli = Join-Path (Split-Path $executable -Parent) 'node_modules/npm/bin/npm-cli.js'
         if (-not (Test-Path -LiteralPath $npmCli)) { throw 'Installed npm CLI was not found.' }
-        $executable = (Get-Command node -CommandType Application -ErrorAction Stop).Source
+        $executable = (Get-Command node -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source
         $prefix = @($npmCli)
     } elseif ([IO.Path]::GetExtension($executable) -eq '.ps1') {
         $prefix = @('-NoProfile','-NonInteractive','-File',$executable)
-        $executable = (Get-Command pwsh -CommandType Application -ErrorAction Stop).Source
+        $executable = (Get-Command pwsh -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source
     } elseif ([IO.Path]::GetExtension($executable) -in @('.cmd','.bat')) { throw 'Batch launchers are not supported; use a native executable or PowerShell script.' }
     $info = [Diagnostics.ProcessStartInfo]::new()
     $info.FileName=$executable; $info.WorkingDirectory=$WorkingDirectory; $info.UseShellExecute=$false

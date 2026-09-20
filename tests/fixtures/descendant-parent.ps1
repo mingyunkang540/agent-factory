@@ -1,6 +1,6 @@
 # A detached child keeps the redirected output pipe open after this parent exits.
 $childInfo=[Diagnostics.ProcessStartInfo]::new()
-$childInfo.FileName=(Get-Command pwsh).Source
+$childInfo.FileName=(Get-Command pwsh -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source
 $childInfo.UseShellExecute=$false
 $childInfo.CreateNoWindow=$true
 $childInfo.WorkingDirectory=$PSScriptRoot
