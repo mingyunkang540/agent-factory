@@ -7,6 +7,7 @@
 | 검증 | 실제 결과 |
 | --- | --- |
 | 전체 자가 테스트 | **49 passed, 0 failed**, 종료 코드 0 |
+| GitHub Actions | [실행 35502107320](https://github.com/mingyunkang540/agent-factory/actions/runs/35502107320)의 Ubuntu·Windows 작업 통과 |
 | React Web 생성 앱 | npm ci, lint, typecheck, test, build 통과 |
 | React + Capacitor 생성 앱 | npm ci, lint, typecheck, test, 웹 build 통과 |
 | 프리셋 smoke test | 각 시드 1개 통과 |
@@ -16,8 +17,8 @@
 | 원본 DOCX | 최초·최종 SHA-256 일치 |
 
 확인 환경: Windows, PowerShell 7.6.6, Codex CLI 0.147.0, Git 2.50.1.windows.1,
-Node.js 22.17.1, npm 10.9.2. GitHub Actions의 Windows/Ubuntu 실행 정의는 작성했으며
-원격 실행 결과를 주장하지 않는다.
+Node.js 22.17.1, npm 10.9.2. GitHub Actions에서도 Windows와 Ubuntu의 자체 테스트,
+React Web 및 React + Capacitor 프리셋 생성·품질 검사를 통과했다.
 
 ## 재현 명령과 증거 위치
 
@@ -80,7 +81,7 @@ PSScriptAnalyzer는 설치되어 있지 않아 실행하지 않았다. 내장 Po
 - 실제 Codex 서비스로 계획→구현→리뷰 전체 사이클 실행.
 - 실제 브라우저 E2E 및 제품 UX 검수.
 - Android/iOS 플랫폼 생성, 네이티브 SDK 빌드·서명·스토어 제출.
-- 원격 GitHub Actions 실행 결과, required checks 설정, 실제 PR·배포.
+- required checks 설정, 실제 PR·배포.
 - 변경 가능한 로컬 승인·로그의 위변조 방지.
 - 부모 종료 후 분리된 자식 프로세스에 대한 OS 수준 격리.
 
